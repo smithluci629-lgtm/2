@@ -66,34 +66,41 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in">
-      <div className="bg-bgPanel w-full max-w-sm rounded-[2rem] border-2 border-bgSecondary shadow-2xl relative overflow-hidden animate-scale-in">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl animate-fade-in">
+      <div className="glass-card w-full max-w-sm rounded-3xl relative overflow-hidden animate-scale-in border border-white/10 shadow-[0_0_60px_rgba(99,102,241,0.3)]">
+        {/* Background Gradients */}
+        <div className="absolute -top-20 -left-20 w-60 h-60 bg-neonBlue/20 rounded-full blur-[60px] animate-pulse"></div>
+        <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-neonPurple/20 rounded-full blur-[60px] animate-pulse delay-1000"></div>
 
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-bgBody text-textSecondary hover:bg-bgSecondary hover:text-textPrimary transition-all"
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-white/50 hover:bg-white/10 hover:text-white transition-all z-20"
         >
           <i className="fas fa-times"></i>
         </button>
 
-        <div className="p-8 pt-10 text-center">
-          <h2 className="text-3xl font-extrabold text-textPrimary mb-2 font-display">
-            {isRegister ? "Join Loen" : "Welcome Back"}
+        <div className="p-8 pt-12 text-center relative z-10">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-neonBlue to-neonPurple flex items-center justify-center mx-auto mb-6 shadow-lg shadow-neonPurple/30">
+            <i className="fas fa-fingerprint text-3xl text-white"></i>
+          </div>
+
+          <h2 className="text-3xl font-black text-white mb-2 tracking-tight">
+            {isRegister ? "Join Network" : "Welcome Back"}
           </h2>
-          <p className="text-textSecondary mb-8 font-medium">
-            {isRegister ? "Create an account to track your progress" : "Login to sync your data"}
+          <p className="text-textSecondary mb-8 text-sm font-medium">
+            {isRegister ? "Initialize new user protocol" : "Authenticate to sync neural data"}
           </p>
 
           {error && (
-            <div className="bg-accentRed/10 text-accentRed p-3 rounded-xl mb-4 text-left text-xs font-bold flex items-start gap-2 border border-accentRed/20">
-              <i className="fas fa-exclamation-circle text-lg"></i>
+            <div className="bg-red-500/10 text-red-400 p-3 rounded-xl mb-4 text-left text-xs font-bold flex items-center gap-2 border border-red-500/20 animate-shake">
+              <i className="fas fa-exclamation-triangle"></i>
               <span>{error}</span>
             </div>
           )}
 
           {message && (
-            <div className="bg-brandSecondary/10 text-brandSecondary p-3 rounded-xl mb-4 text-left text-xs font-bold flex items-start gap-2 border border-brandSecondary/20">
-              <i className="fas fa-check-circle text-lg"></i>
+            <div className="bg-neonGreen/10 text-neonGreen p-3 rounded-xl mb-4 text-left text-xs font-bold flex items-center gap-2 border border-neonGreen/20">
+              <i className="fas fa-check-circle"></i>
               <span>{message}</span>
             </div>
           )}
@@ -104,10 +111,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full bg-bgBody border-2 border-bgSecondary text-textPrimary rounded-xl px-4 py-4 pl-12 focus:outline-none focus:border-brandHighlight transition-all placeholder-textSecondary/50 font-bold"
+                placeholder="Email Identity"
+                className="w-full glass-input rounded-xl px-4 py-4 pl-12 text-white font-bold focus:border-neonBlue transition-all placeholder-white/20"
               />
-              <i className="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-textSecondary group-focus-within:text-brandHighlight transition-colors"></i>
+              <i className="fas fa-at absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-neonBlue transition-colors"></i>
             </div>
 
             <div className="relative group">
@@ -115,14 +122,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                className="w-full bg-bgBody border-2 border-bgSecondary text-textPrimary rounded-xl px-4 py-4 pl-12 focus:outline-none focus:border-brandHighlight transition-all placeholder-textSecondary/50 font-bold pr-10"
+                placeholder="Passcode"
+                className="w-full glass-input rounded-xl px-4 py-4 pl-12 text-white font-bold focus:border-neonPurple transition-all placeholder-white/20 pr-10"
               />
-              <i className="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-textSecondary group-focus-within:text-brandHighlight transition-colors"></i>
+              <i className="fas fa-asterisk absolute left-4 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-neonPurple transition-colors text-xs"></i>
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-textSecondary hover:text-textPrimary"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
               >
                 <i className={`fas ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
               </button>
@@ -132,18 +139,18 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full mt-6 py-4 rounded-2xl bg-brandPrimary text-white font-extrabold shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all disabled:opacity-50 uppercase tracking-wide"
+            className="w-full mt-8 py-4 rounded-xl btn-neon text-white font-black shadow-lg hover:shadow-neonPurple/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all uppercase tracking-widest text-sm"
           >
-            {loading ? <i className="fas fa-spinner fa-spin"></i> : (isRegister ? "Create Account" : "Log In")}
+            {loading ? <i className="fas fa-circle-notch fa-spin"></i> : (isRegister ? "Initialize" : "Connect")}
           </button>
 
-          <div className="mt-6 text-sm font-bold text-textSecondary">
-            {isRegister ? "Already have an account?" : "Don't have an account?"}
+          <div className="mt-8 text-sm font-medium text-textSecondary">
             <button
               onClick={() => { setIsRegister(!isRegister); setError(null); setMessage(null); }}
-              className="ml-2 text-brandHighlight hover:underline relative z-10"
+              className="text-white hover:text-neonBlue transition-colors relative group"
             >
-              {isRegister ? "Log In" : "Register"}
+              {isRegister ? "Access existing account" : "Create new identity"}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-neonBlue transition-all group-hover:w-full"></span>
             </button>
           </div>
         </div>

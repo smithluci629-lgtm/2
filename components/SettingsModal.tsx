@@ -44,63 +44,70 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-      <div className="bg-bgPanel w-full max-w-lg rounded-2xl border border-borderColor shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
-        
-        <div className="p-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-textPrimary flex items-center gap-3">
-              <i className="fas fa-cog text-textHighlight"></i> API Settings
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
+      <div className="glass-card w-full max-w-lg rounded-2xl relative overflow-hidden animate-scale-in border border-white/10 shadow-[0_0_50px_rgba(139,92,246,0.15)]">
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-neonPurple/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-neonBlue/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="p-8 relative z-10">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-3 tracking-tight">
+              <i className="fas fa-cog text-neonPurple animate-spin-slow"></i> System Config
             </h2>
-            <button onClick={onClose} className="text-textSecondary hover:text-textPrimary transition-colors">
-              <i className="fas fa-times text-xl"></i>
+            <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center text-textSecondary hover:bg-white/10 hover:text-white transition-all">
+              <i className="fas fa-times"></i>
             </button>
           </div>
 
-          <p className="text-textSecondary mb-6 text-sm">
-            Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="text-textHighlight hover:underline">Google AI Studio</a>.
-            You can add multiple keys for rotation.
-          </p>
+          <div className="mb-6 p-4 rounded-xl bg-neonBlue/5 border border-neonBlue/20">
+            <p className="text-textSecondary text-xs leading-relaxed">
+              Connect your neural link via <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="text-neonBlue font-bold hover:underline hover:text-neonCyan">Google AI Studio</a>.
+              Mutliple keys supported for improved throughput.
+            </p>
+          </div>
 
-          <div className="space-y-3 mb-6 max-h-[60vh] overflow-y-auto pr-2">
+          <div className="space-y-3 mb-8 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
             {keys.map((key, index) => (
-              <div key={index} className="flex gap-2 items-center">
+              <div key={index} className="flex gap-2 items-center group">
                 <div className="relative flex-1">
                   <input
                     type="text"
                     value={key}
                     onChange={(e) => handleChange(index, e.target.value)}
-                    placeholder="Paste your Gemini API key here..."
-                    className="w-full bg-bgSecondary border border-borderColor text-textPrimary text-sm font-mono rounded-xl px-4 py-3 focus:outline-none focus:border-textHighlight focus:ring-1 focus:ring-textHighlight/50 transition-all placeholder-textSecondary/50 pr-10"
+                    placeholder="ENTER_API_KEY_SEQUENCE"
+                    className="w-full glass-input rounded-xl px-4 py-3 pl-10 text-sm font-mono text-neonGreen focus:border-neonGreen/50 placeholder-white/10 transition-all"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-textSecondary font-mono">#{index + 1}</span>
+                  <i className="fas fa-key absolute left-3 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-neonGreen transition-colors"></i>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-white/20 font-mono">SLOT_{index + 1}</span>
                 </div>
                 {keys.length > 1 && (
-                  <button 
+                  <button
                     onClick={() => handleRemoveSlot(index)}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-red-500/10 text-errorColor hover:bg-red-500 hover:text-white transition-all"
+                    className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-transparent hover:border-red-400/50"
                   >
-                    <i className="fas fa-trash"></i>
+                    <i className="fas fa-trash text-xs"></i>
                   </button>
                 )}
               </div>
             ))}
           </div>
 
-          <button 
-            onClick={handleAddSlot}
-            className="w-full mb-3 py-3 rounded-xl border border-borderColor text-textPrimary hover:bg-bgHover transition-all font-semibold flex items-center justify-center gap-2"
-          >
-            <i className="fas fa-plus"></i> Add Another Key
-          </button>
+          <div className="grid gap-3">
+            <button
+              onClick={handleAddSlot}
+              className="w-full py-3 rounded-xl glass-button text-textSecondary hover:text-white font-semibold flex items-center justify-center gap-2 text-sm border-dashed"
+            >
+              <i className="fas fa-plus"></i> Initialize New Slot
+            </button>
 
-          <button 
-            onClick={handleSave}
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
-          >
-            <i className="fas fa-save"></i> Save & Close
-          </button>
+            <button
+              onClick={handleSave}
+              className="w-full py-4 rounded-xl btn-neon text-white font-bold shadow-lg flex items-center justify-center gap-2 uppercase tracking-widest text-sm hover:shadow-neonPurple/50"
+            >
+              <i className="fas fa-save"></i> Save Configuration
+            </button>
+          </div>
         </div>
       </div>
     </div>
