@@ -3,6 +3,12 @@ import { supabase } from '../services/supabase';
 import { callAIWithRotation, generateLessonPrompt } from '../services/geminiService';
 import { StoryResponse, SentenceData, Lesson, UserProfile } from '../types';
 
+declare global {
+  interface Window {
+    confetti: any;
+  }
+}
+
 interface PracticeTabProps {
   apiKeys: string[];
   user: UserProfile | null;
@@ -99,7 +105,16 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
       setFeedback({ showed: false, data: null });
       setUserTranslation('');
     } else {
-      // Finished
+      // Finished logic with confetti
+      if (window.confetti) {
+        window.confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#58cc02', '#2dd4bf', '#a855f7', '#facc15']
+        });
+      }
+
       if (user && currentLessonId) {
         const score = storyData.length * 10;
         await supabase.from('lessons').update({
@@ -110,9 +125,9 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
         }).eq('id', currentLessonId);
 
         onUpdateUserStats();
-        alert(`🎉 CONGRATULATIONS! You earned ${score} points!`);
+        setTimeout(() => alert(`🎉 CONGRATULATIONS! You earned ${score} points!`), 500);
       } else {
-        alert("🎉 CONGRATULATIONS! Sign in to save your progress!");
+        setTimeout(() => alert("🎉 CONGRATULATIONS! Sign in to save your progress!"), 500);
       }
       // Reset or stay? Let's stay but maybe show full completion state
       // For now, just clear feedback to look like "done"

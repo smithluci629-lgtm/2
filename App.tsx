@@ -94,6 +94,9 @@ const App: React.FC = () => {
         {user ? (
           <>
             <div className="flex items-center gap-2 bg-bgPanel py-1.5 px-3 rounded-full shadow-sm border border-bgSecondary">
+              <div className="flex items-center gap-1 text-accentYellow font-bold border-r border-bgSecondary pr-3 mr-1">
+                <i className="fas fa-fire"></i> 1
+              </div>
               <img src={user.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`} alt="Avatar" className="w-8 h-8 rounded-full border border-brandHighlight" />
               <div className="hidden sm:block text-right">
                 <div className="text-sm font-bold leading-none">{user.full_name}</div>
