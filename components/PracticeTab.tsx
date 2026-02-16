@@ -29,7 +29,6 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
   const [fromCache, setFromCache] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-focus input when moving to next sentence or starting
   useEffect(() => {
     if (!pasteMode && !feedback.showed && inputRef.current) {
       inputRef.current.focus();
@@ -42,7 +41,6 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
       return;
     }
 
-    // Check cache first
     const cached = getCachedLesson(textInput);
     if (cached) {
       setStoryData(cached.sentences);
@@ -64,8 +62,6 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
     try {
       const prompt = generateLessonPrompt(textInput);
       const data = await callAIWithRotation(prompt, apiKeys);
-
-      // Save to cache
       cacheLesson(textInput, data);
 
       setStoryData(data.sentences);
@@ -75,24 +71,16 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
       setUserTranslation('');
 
       if (user) {
-        // Create lesson in DB
-        const { data: lesson, error } = await supabase
-          .from('lessons')
-          .insert({
-            user_id: user.id,
-            vietnamese_text: textInput,
-            total_sentences: data.sentences.length,
-            completed_sentences: 0,
-            score: 0,
-            status: 'in_progress'
-          })
-          .select()
-          .single();
-
+        const { data: lesson } = await supabase.from('lessons').insert({
+          user_id: user.id,
+          vietnamese_text: textInput,
+          total_sentences: data.sentences.length,
+          completed_sentences: 0,
+          score: 0,
+          status: 'in_progress'
+        }).select().single();
         if (lesson) setCurrentLessonId(lesson.id);
-        if (error) console.error("Error creating lesson:", error);
       }
-
     } catch (error: any) {
       alert(`Error: ${error.message}`);
     } finally {
@@ -112,7 +100,7 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
         vietnamese_sentence: currentSentence.vi,
         correct_answer: currentSentence.en_best,
         user_answer: userTranslation,
-        is_correct: false, // In a real app we might use AI to fuzzy match correctness
+        is_correct: false,
         attempts: 1
       });
     }
@@ -124,29 +112,16 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
       setFeedback({ showed: false, data: null });
       setUserTranslation('');
     } else {
-      // Finished logic with confetti
       if (window.confetti) {
-        window.confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: ['#58cc02', '#2dd4bf', '#a855f7', '#facc15']
-        });
+        window.confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#6366f1', '#a855f7', '#ec4899', '#06b6d4'] });
       }
-
       if (user && currentLessonId) {
         const score = storyData.length * 10;
-        await supabase.from('lessons').update({
-          completed_sentences: storyData.length,
-          score: score,
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        }).eq('id', currentLessonId);
-
+        await supabase.from('lessons').update({ completed_sentences: storyData.length, score: score, status: 'completed', completed_at: new Date().toISOString() }).eq('id', currentLessonId);
         onUpdateUserStats();
-        setTimeout(() => alert(`🎉 CONGRATULATIONS! You earned ${score} points!`), 500);
+        setTimeout(() => alert(`🎉 Mission Complete! +${score} XP`), 500);
       } else {
-        setTimeout(() => alert("🎉 CONGRATULATIONS! Sign in to save your progress!"), 500);
+        setTimeout(() => alert("🎉 Mission Complete! Login to save stats."), 500);
       }
     }
   };
@@ -166,150 +141,149 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
   };
 
   const speakPhrase = (text: string) => {
-    // Google Translate TTS URL (English)
     const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
     const audio = new Audio(url);
-    audio.play().catch(e => console.error("Audio playback failed:", e));
+    audio.play().catch(console.error);
   };
 
   return (
-    <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
-      {/* Input & Story Card */}
-      <div className="bg-bgPanel rounded-3xl border-2 border-bgSecondary shadow-card p-6 flex flex-col">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold font-display text-textPrimary flex items-center gap-2">
-            <span className="bg-brandHighlight/20 text-brandHighlight p-2 rounded-xl"><i className="fas fa-edit"></i></span>
-            Practice
-            {fromCache && <span className="text-xs bg-accentGreen/10 text-accentGreen px-2 py-1 rounded-full border border-accentGreen/20 ml-2 animate-pulse"><i className="fas fa-bolt"></i> Cached</span>}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto items-start">
+
+      {/* Left Panel: Workflow */}
+      <div className="glass-card rounded-3xl p-8 relative overflow-hidden group">
+        {/* Decorative glow */}
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-neonPurple/20 rounded-full blur-3xl group-hover:bg-neonPurple/30 transition-all duration-700"></div>
+
+        <div className="flex justify-between items-center mb-6 relative z-10">
+          <h2 className="text-2xl font-bold font-sans text-white flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+              <i className="fas fa-terminal text-neonBlue"></i>
+            </div>
+            <span>Input Terminal</span>
+            {fromCache && <span className="text-[10px] bg-neonGreen/10 text-neonGreen border border-neonGreen/20 px-2 py-0.5 rounded uppercase tracking-wider font-bold shadow-[0_0_10px_rgba(16,185,129,0.2)]">Cached</span>}
           </h2>
           {!pasteMode && (
-            <button onClick={handleNew} className="text-sm px-4 py-2 rounded-xl bg-bgSecondary text-textPrimary font-bold hover:bg-opacity-80 transition-all border-b-4 border-bgBody active:border-b-0 active:translate-y-1">
-              <i className="fas fa-plus mr-1"></i> New
+            <button onClick={handleNew} className="text-xs px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 text-textSecondary hover:text-white transition-all">
+              Reset
             </button>
           )}
         </div>
 
         {pasteMode ? (
-          <div className="animate-fade-in-up">
+          <div className="animate-fade-scale">
             <textarea
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              className="w-full h-48 bg-bgBody border-2 border-bgSecondary rounded-2xl p-4 text-textPrimary focus:outline-none focus:border-brandHighlight transition-all mb-6 placeholder-textSecondary/50 text-lg resize-none"
-              placeholder="Paste Vietnamese text here..."
-            ></textarea>
+              className="w-full h-48 glass-input rounded-xl p-5 text-lg font-medium placeholder-white/30 resize-none mb-6 font-mono leading-relaxed focus:outline-none"
+              placeholder="// Paste Vietnamese text source here..."
+            />
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="w-full py-4 bg-brandPrimary text-white font-extrabold text-lg rounded-2xl shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-2 uppercase tracking-wide"
+              className="w-full py-4 rounded-xl btn-neon text-white font-bold text-lg tracking-wide uppercase transition-all duration-300 flex items-center justify-center gap-2"
             >
-              {loading ? <i className="fas fa-spinner fa-spin"></i> : "Start Lesson"}
+              {loading ? <i className="fas fa-circle-notch fa-spin"></i> : <><i className="fas fa-code-branch"></i> Initialize Sequence</>}
             </button>
           </div>
         ) : (
-          <div className="flex flex-col h-full animate-fade-in-up">
-            {/* Story Display */}
-            <div className="bg-bgBody rounded-2xl p-6 mb-6 text-lg leading-relaxed min-h-[120px] border-2 border-bgSecondary">
+          <div className="animate-fade-scale">
+            <div className="mb-6 p-5 rounded-2xl bg-black/20 border border-white/5 font-medium text-lg leading-relaxed relative">
+              <div className="absolute top-0 left-0 w-1 h-full bg-neonPurple rounded-l-2xl"></div>
               {storyData.length === 0 ? (
-                <div className="text-center text-textSecondary py-8">
-                  <i className="fas fa-spinner fa-spin text-3xl mb-3"></i>
-                  <p>Generating...</p>
+                <div className="flex items-center gap-2 text-neonBlue animate-pulse">
+                  <i className="fas fa-cog fa-spin"></i> Processing data...
                 </div>
               ) : (
-                storyData.map((sentence, idx) => {
-                  let className = "transition-all duration-300 rounded px-1 inline-block mx-0.5 ";
-                  let content = sentence.vi;
-
-                  if (idx < currentIndex) {
-                    className += "text-textSecondary font-normal line-through opacity-50";
-                    content = sentence.vi; // Keep Vietnamese but strikethrough
-                  } else if (idx === currentIndex) {
-                    className += "text-brandPrimary font-bold bg-brandPrimary/10 border-b-2 border-brandPrimary/30";
-                    content = sentence.vi;
-                  } else {
-                    className += "text-textSecondary opacity-50";
-                    content = sentence.vi;
-                  }
-
-                  return <span key={idx} className={className}>{content} </span>
-                })
+                storyData.map((s, i) => (
+                  <span key={i} className={`mr-1 transition-all duration-300 ${i === currentIndex ? 'text-white bg-neonPurple/20 box-decoration-clone px-1 rounded' : i < currentIndex ? 'text-textSecondary line-through opacity-40' : 'text-textSecondary opacity-60'}`}>
+                    {s.vi}
+                  </span>
+                ))
               )}
             </div>
 
-            {/* Input Area */}
-            <div className="relative mb-6">
+            <div className="relative group">
               <textarea
                 ref={inputRef}
                 value={userTranslation}
                 onChange={(e) => setUserTranslation(e.target.value)}
                 disabled={feedback.showed}
-                className={`w-full h-32 bg-bgBody border-2 ${feedback.showed ? 'border-bgSecondary text-textSecondary' : 'border-bgSecondary focus:border-brandSecondary'} rounded-2xl p-4 text-textPrimary focus:outline-none transition-all text-lg resize-none`}
-                placeholder={feedback.showed ? "" : "Type translation..."}
-              ></textarea>
-
-              {feedback.showed && feedback.data && (
-                <div className="absolute inset-0 bg-bgPanel/95 backdrop-blur-sm rounded-2xl p-4 flex flex-col justify-center animate-fade-in border-2 border-brandHighlight/20">
-                  <div className="text-sm text-textSecondary uppercase font-bold mb-1">Correct Answer:</div>
-                  <div className="text-lg font-bold text-brandHighlight mb-2">{feedback.data.en_best}</div>
-                  <button onClick={() => speakPhrase(feedback.data!.en_best)} className="self-start text-textPrimary bg-bgSecondary px-3 py-1 rounded-full text-xs font-bold hover:bg-opacity-80 flex items-center gap-1">
-                    <i className="fas fa-volume-up"></i> Listen (Google)
-                  </button>
+                className={`w-full h-32 glass-input rounded-xl p-5 text-xl font-medium focus:outline-none transition-all resize-none ${feedback.showed ? 'opacity-50 blur-[1px]' : ''}`}
+                placeholder="Type translation..."
+              />
+              {feedback.showed && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                  <div className={`text-6xl ${feedback.data?.en_best === userTranslation ? 'text-neonGreen' : 'text-neonPink'} drop-shadow-[0_0_20px_rgba(0,0,0,0.5)]`}>
+                    <i className={`fas ${feedback.data?.en_best === userTranslation ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Controls */}
-            <div className="flex gap-3 mt-auto">
+            <div className="flex gap-4 mt-6">
               {!feedback.showed ? (
-                <button
-                  onClick={checkAnswer}
-                  className="flex-1 py-4 rounded-2xl bg-brandSecondary text-white font-extrabold shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all uppercase tracking-wide"
-                >
-                  Check
+                <button onClick={checkAnswer} className="flex-1 py-4 rounded-xl bg-white text-bgBody font-bold text-lg hover:bg-neonBlue hover:text-white transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]">
+                  Verify Output
                 </button>
               ) : (
-                <button
-                  onClick={handleNext}
-                  className="flex-1 py-4 rounded-2xl bg-brandPrimary text-white font-extrabold shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all uppercase tracking-wide"
-                >
-                  Continue
-                </button>
+                <>
+                  <button onClick={handleRetry} className="px-6 py-4 rounded-xl glass-button text-white font-bold hover:bg-white/10">
+                    <i className="fas fa-undo"></i>
+                  </button>
+                  <button onClick={handleNext} className="flex-1 py-4 rounded-xl btn-neon text-white font-bold text-lg">
+                    Proceed <i className="fas fa-arrow-right ml-2 opacity-70"></i>
+                  </button>
+                </>
               )}
             </div>
+          </div>
+        )}
+      </div>
 
-            {/* Progress Bar */}
-            <div className="mt-8">
-              <div className="flex justify-between text-xs text-textSecondary uppercase font-bold mb-2">
-                <span>Progress</span>
-                <span>{currentIndex} / {storyData.length}</span>
+      {/* Right Panel: Data Visualization (Feedback) */}
+      <div className={`glass-card rounded-3xl p-8 relative min-h-[400px] flex flex-col transition-all duration-500 ${feedback.showed ? 'opacity-100 translate-x-0' : 'opacity-50 translate-x-10 blur-sm pointer-events-none lg:opacity-100 lg:blur-0 lg:translate-x-0 lg:grayscale'}`}>
+
+        <div className="flex items-center gap-2 mb-6 text-neonCyan font-bold tracking-wider uppercase text-xs border-b border-white/10 pb-4">
+          <i className="fas fa-database"></i> Analysis Stream
+        </div>
+
+        {!feedback.showed || !feedback.data ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-textSecondary space-y-4 opacity-50">
+            <div className="w-20 h-20 rounded-full border border-dashed border-white/20 flex items-center justify-center animate-[spin_10s_linear_infinite]">
+              <div className="w-16 h-16 rounded-full border border-dashed border-white/20 flex items-center justify-center animate-[spin_5s_linear_infinite_reverse]"></div>
+            </div>
+            <p className="font-mono text-sm">Waiting for input...</p>
+          </div>
+        ) : (
+          <div className="animate-fade-scale space-y-6">
+            <div>
+              <div className="text-xs text-textSecondary uppercase font-bold mb-2">Optimal Translation</div>
+              <div className="text-xl md:text-2xl font-bold text-white leading-relaxed p-4 rounded-xl bg-gradient-to-r from-neonGreen/10 to-transparent border-l-4 border-neonGreen shadow-[0_4px_20px_rgba(16,185,129,0.1)] flex justify-between gap-4">
+                <span>{feedback.data.en_best}</span>
+                <button onClick={() => speakPhrase(feedback.data!.en_best)} className="text-neonGreen hover:text-white transition-colors h-8 w-8 flex items-center justify-center rounded-full hover:bg-neonGreen/20">
+                  <i className="fas fa-volume-up"></i>
+                </button>
               </div>
-              <div className="h-4 bg-bgBody border-2 border-bgSecondary rounded-full overflow-hidden p-0.5">
-                <div
-                  className="h-full bg-brandHighlight rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${((currentIndex) / storyData.length) * 100}%` }}
-                ></div>
+            </div>
+
+            <div>
+              <div className="text-xs text-textSecondary uppercase font-bold mb-2 mt-8">Vocabulary Matrix</div>
+              <div className="grid gap-3">
+                {feedback.data.phrase_breakdown?.map((item, i) => (
+                  <div key={i} className="group p-4 rounded-xl bg-white/5 border border-white/5 hover:border-neonPurple/50 hover:bg-neonPurple/10 transition-all cursor-pointer flex justify-between items-center" onClick={() => speakPhrase(item.phrase)}>
+                    <div>
+                      <div className="text-neonBlue font-bold text-lg group-hover:text-neonPurple transition-colors">{item.phrase}</div>
+                      <div className="text-sm text-textSecondary">{item.meaning}</div>
+                    </div>
+                    <i className="fas fa-play text-xs text-white/20 group-hover:text-neonPurple transition-colors"></i>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Vocabulary Card */}
-      {feedback.showed && feedback.data && feedback.data.phrase_breakdown && (
-        <div className="bg-bgPanel rounded-3xl border-2 border-bgSecondary shadow-card p-6 animate-slide-in-up">
-          <h3 className="text-lg font-bold font-display text-textPrimary mb-4 flex items-center gap-2">
-            <i className="fas fa-book-open text-accentYellow"></i> Vocabulary From This Sentence
-          </h3>
-          <div className="grid gap-2">
-            {feedback.data.phrase_breakdown.map((item, i) => (
-              <div key={i} className="bg-bgBody p-3 rounded-xl border border-bgSecondary flex justify-between items-center group hover:border-brandSecondary/50 transition-colors cursor-pointer" onClick={() => speakPhrase(item.phrase)}>
-                <span className="font-bold text-brandSecondary group-hover:underline">{item.phrase}</span>
-                <span className="text-textSecondary text-sm">{item.meaning}</span>
-                <i className="fas fa-volume-up text-textSecondary group-hover:text-textPrimary ml-2 text-xs opacity-50"></i>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

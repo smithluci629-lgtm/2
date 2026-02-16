@@ -4,7 +4,7 @@
 
 @layer base {
     body {
-        @apply bg-bgBody text-textPrimary antialiased;
+        @apply bg-bgBody text-textPrimary antialiased selection:bg-neonPurple selection:text-white;
     }
 }
 
@@ -14,55 +14,31 @@
     }
 }
 
-/* Custom Animations */
-@keyframes fadeInUp {
-    from {
+@keyframes fadeScale {
+    0% {
         opacity: 0;
-        transform: translateY(20px);
+        transform: scale(0.95);
     }
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes scaleIn {
-    from {
-        opacity: 0;
-        transform: scale(0.9);
-    }
-
-    to {
+    100% {
         opacity: 1;
         transform: scale(1);
     }
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+.animate-fade-scale {
+    animation: fadeScale 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-fade-in-up {
-    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-float {
+    animation: float 6s ease-in-out infinite;
 }
 
-.animate-scale-in {
-    animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Glass Variants */
+.glass-panel {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl;
 }
 
-.animate-slide-in {
-    animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in {
-    animation: scaleIn 0.2s ease-out forwards;
+.glass-button {
+    @apply bg-white/5 hover:bg-white/10 border border-white/10 active:scale-95 transition-all duration-200 backdrop-blur-md;
 }

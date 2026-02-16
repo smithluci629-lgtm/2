@@ -45,25 +45,17 @@ const App: React.FC = () => {
   }, []);
 
   const fetchUserProfile = async (uid: string, email: string) => {
-    // Try to get profile
-    let { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', uid)
-      .single();
+    let { data: profile } = await supabase.from('profiles').select('*').eq('id', uid).single();
 
-    // If no profile, insert one (handled mostly by DB triggers usually, but here manually just in case)
     if (!profile) {
       const newProfile = {
         id: uid,
         email: email,
         full_name: email.split('@')[0],
-        avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}`,
+        avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}&background=random`,
         total_score: 0,
         total_lessons: 0
       };
-      // Attempt insert if policy allows, otherwise it relies on supabase triggers
-      // For this demo, we assume the table exists as per provided code
       const { error } = await supabase.from('profiles').insert(newProfile);
       if (!error) profile = newProfile;
     }
@@ -88,109 +80,143 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen mobile-pb">
-      {/* Top Controls Area */}
-      <div className="container mx-auto px-4 py-4 flex justify-end items-center gap-3">
-        {user ? (
-          <>
-            <div className="flex items-center gap-2 bg-bgPanel py-1.5 px-3 rounded-full shadow-sm border border-bgSecondary">
-              <div className="flex items-center gap-1 text-accentYellow font-bold border-r border-bgSecondary pr-3 mr-1">
-                <i className="fas fa-fire"></i> 1
+    <div className="min-h-screen text-textPrimary selection:bg-neonPurple/30">
+
+      {/* Dynamic Background Elements */}
+      <div className="fixed top-20 right-20 w-64 h-64 bg-neonPurple/20 rounded-full blur-[100px] animate-pulse"></div>
+      <div className="fixed bottom-20 left-20 w-80 h-80 bg-neonBlue/10 rounded-full blur-[120px] animate-pulse delay-1000"></div>
+
+      {/* Top Navbar */}
+      <nav className="fixed top-0 inset-x-0 glass z-50 h-16 px-4 md:px-8 flex items-center justify-between border-b border-glassBorder">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neonBlue to-neonPurple flex items-center justify-center shadow-[0_0_15px_rgba(139,92,246,0.5)]">
+            <i className="fas fa-cube text-white text-sm"></i>
+          </div>
+          <span className="font-bold text-xl tracking-tight text-white hidden sm:block">Loen<span className="text-neonPurple">.AI</span></span>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <div className="glass-card px-3 py-1.5 rounded-full flex items-center gap-2 border border-neonPurple/30 relative overflow-hidden group">
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+
+                <div className="flex items-center gap-1.5 border-r border-white/10 pr-3 mr-1">
+                  <i className="fas fa-fire text-orange-500 animate-pulse"></i>
+                  <span className="font-bold text-orange-400">1</span>
+                </div>
+                <img src={user.avatar_url} alt="Profile" className="w-6 h-6 rounded-full ring-2 ring-neonPurple/50" />
+                <div className="hidden md:block">
+                  <div className="text-xs font-bold text-white leading-none">{user.full_name}</div>
+                  <div className="text-[10px] text-neonPurple font-mono">{user.total_score} XP</div>
+                </div>
               </div>
-              <img src={user.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`} alt="Avatar" className="w-8 h-8 rounded-full border border-brandHighlight" />
-              <div className="hidden sm:block text-right">
-                <div className="text-sm font-bold leading-none">{user.full_name}</div>
-                <div className="text-xs text-brandHighlight font-mono">{user.total_score} pts</div>
-              </div>
+              <button onClick={() => setShowSettings(true)} className="glass-button w-9 h-9 rounded-lg flex items-center justify-center text-textSecondary hover:text-white">
+                <i className="fas fa-cog"></i>
+              </button>
+              <button onClick={handleLogout} className="glass-button w-9 h-9 rounded-lg flex items-center justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10 hover:border-red-500/20">
+                <i className="fas fa-sign-out-alt"></i>
+              </button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <button onClick={() => setShowSettings(true)} className="p-2 text-textSecondary hover:text-white transition-colors">
+                <i className="fas fa-cog"></i>
+              </button>
+              <button
+                onClick={() => setShowLogin(true)}
+                className="px-5 py-2 rounded-lg bg-white text-bgBody font-bold text-sm hover:bg-neonPurple hover:text-white hover:shadow-[0_0_20px_rgba(139,92,246,0.4)] transition-all duration-300"
+              >
+                Login
+              </button>
             </div>
-            <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-xl bg-bgPanel text-textSecondary hover:text-textPrimary hover:shadow-lg transition-all flex items-center justify-center">
-              <i className="fas fa-cog"></i>
-            </button>
-            <button onClick={handleLogout} className="w-10 h-10 rounded-xl bg-red-500/10 text-accentRed hover:bg-accentRed hover:text-white hover:shadow-lg transition-all flex items-center justify-center">
-              <i className="fas fa-sign-out-alt"></i>
-            </button>
-          </>
-        ) : (
-          <>
-            <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-xl bg-bgPanel text-textSecondary hover:text-textPrimary hover:shadow-lg transition-all flex items-center justify-center">
-              <i className="fas fa-cog"></i>
-            </button>
-            <button onClick={() => setShowLogin(true)} className="px-4 py-2 rounded-xl bg-brandPrimary text-white shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
-              Login
-            </button>
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      </nav>
 
-      {/* Main Content Area */}
-      <div className="container mx-auto px-4 pb-24 md:pb-8 max-w-4xl">
-        {tab === 'practice' && (
-          <PracticeTab
-            apiKeys={apiKeys}
-            user={user}
-            onOpenSettings={() => setShowSettings(true)}
-            onUpdateUserStats={updateStats}
-          />
-        )}
-        {tab === 'leaderboard' && <LeaderboardTab user={user} />}
-        {tab === 'notes' && <NotesTab user={user} onOpenLogin={() => setShowLogin(true)} />}
-      </div>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 pt-24 pb-28 md:pb-10 max-w-5xl relative z-10">
+        <div className="animate-fade-scale">
+          {tab === 'practice' && (
+            <PracticeTab
+              apiKeys={apiKeys}
+              user={user}
+              onOpenSettings={() => setShowSettings(true)}
+              onUpdateUserStats={updateStats}
+            />
+          )}
+          {tab === 'leaderboard' && <LeaderboardTab user={user} />}
+          {tab === 'notes' && <NotesTab user={user} onOpenLogin={() => setShowLogin(true)} />}
+        </div>
+      </main>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-bgPanel border-t border-bgSecondary px-6 py-3 flex justify-around items-center z-50 md:hidden pb-safe">
+      {/* Mobile Bottom Nav */}
+      <div className="fixed bottom-0 inset-x-0 glass z-50 h-20 pb-safe md:hidden flex justify-around items-center border-t border-glassBorder mx-4 mb-4 rounded-2xl shadow-2xl">
         {[
-          { id: 'practice', icon: 'fa-book-open', label: 'Practice' },
-          { id: 'leaderboard', icon: 'fa-trophy', label: 'Rank' },
-          { id: 'notes', icon: 'fa-sticky-note', label: 'Notes' }
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              if ((item.id === 'leaderboard' || item.id === 'notes') && !user) {
-                setShowLogin(true);
-                return;
-              }
-              setTab(item.id as any);
-            }}
-            className={`flex flex-col items-center gap-1 transition-all ${tab === item.id ? 'text-brandHighlight transform scale-110' : 'text-textSecondary hover:text-textPrimary'}`}
-          >
-            <i className={`fas ${item.icon} text-xl`}></i>
-            <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
-          </button>
-        ))}
+          { id: 'practice', icon: 'fa-brain', label: 'Practice' },
+          { id: 'leaderboard', icon: 'fa-chart-simple', label: 'Rank' },
+          { id: 'notes', icon: 'fa-bolt', label: 'Notes' }
+        ].map((item) => {
+          const isActive = tab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if ((item.id === 'leaderboard' || item.id === 'notes') && !user) {
+                  setShowLogin(true);
+                  return;
+                }
+                setTab(item.id as any);
+              }}
+              className={`relative flex flex-col items-center justify-center w-16 h-16 rounded-2xl transition-all duration-300 ${isActive ? 'text-white' : 'text-textSecondary hover:text-white'}`}
+            >
+              {isActive && (
+                <div className="absolute inset-0 bg-gradient-to-b from-neonPurple/20 to-transparent rounded-2xl blur-sm"></div>
+              )}
+              <i className={`fas ${item.icon} text-xl mb-1 relative z-10 ${isActive ? 'text-neonPurple drop-shadow-[0_0_8px_rgba(139,92,246,0.6)]' : ''} transition-all`}></i>
+              <span className={`text-[10px] font-bold tracking-wider relative z-10 ${isActive ? 'text-white' : ''}`}>{item.label}</span>
+
+              {/* Active Indicator Dot */}
+              {isActive && <div className="absolute -bottom-1 w-1 h-1 bg-neonPurple rounded-full shadow-[0_0_5px_#8b5cf6]"></div>}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Desktop Side Navigation (Hidden on Mobile) */}
-      <div className="hidden md:flex fixed left-8 top-1/2 -translate-y-1/2 bg-bgPanel p-2 rounded-2xl flex-col gap-2 border border-bgSecondary shadow-xl z-40">
+      {/* Desktop Side Nav */}
+      <div className="hidden md:flex fixed left-6 top-1/2 -translate-y-1/2 flex-col gap-4 z-40">
         {[
-          { id: 'practice', icon: 'fa-book-open', label: 'Practice' },
-          { id: 'leaderboard', icon: 'fa-trophy', label: 'Leaderboard' },
-          { id: 'notes', icon: 'fa-sticky-note', label: 'My Notes' }
-        ].map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              if ((item.id === 'leaderboard' || item.id === 'notes') && !user) {
-                setShowLogin(true);
-                return;
-              }
-              setTab(item.id as any);
-            }}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${tab === item.id ? 'bg-brandHighlight text-white shadow-lg' : 'text-textSecondary hover:bg-bgSecondary hover:text-textPrimary'}`}
-            title={item.label}
-          >
-            <i className={`fas ${item.icon} text-lg`}></i>
-          </button>
-        ))}
+          { id: 'practice', icon: 'fa-brain', label: 'Practice' },
+          { id: 'leaderboard', icon: 'fa-chart-simple', label: 'Leaderboard' },
+          { id: 'notes', icon: 'fa-bolt', label: 'Quick Notes' }
+        ].map((item) => {
+          const isActive = tab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                if ((item.id === 'leaderboard' || item.id === 'notes') && !user) {
+                  setShowLogin(true);
+                  return;
+                }
+                setTab(item.id as any);
+              }}
+              className={`group relative w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 border ${isActive ? 'bg-neonPurple/10 border-neonPurple text-white shadow-[0_0_15px_rgba(139,92,246,0.3)]' : 'glass-card text-textSecondary hover:text-white border-transparent hover:border-white/20'}`}
+            >
+              <i className={`fas ${item.icon} text-xl transition-transform group-hover:scale-110 ${isActive ? 'text-neonPurple' : ''}`}></i>
+
+              {/* Tooltip */}
+              <div className="absolute left-full ml-4 px-3 py-1.5 glass rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all pointer-events-none whitespace-nowrap">
+                {item.label}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       {/* Modals */}
-      <SettingsModal
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-        onSave={handleSaveKeys}
-        initialKeys={apiKeys}
-      />
+      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} onSave={handleSaveKeys} initialKeys={apiKeys} />
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </div>
   );
