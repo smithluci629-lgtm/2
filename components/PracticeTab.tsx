@@ -42,7 +42,7 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
     try {
       const prompt = generateLessonPrompt(textInput);
       const data = await callAIWithRotation(prompt, apiKeys);
-      
+
       setStoryData(data.sentences);
       setCurrentIndex(0);
       setPasteMode(false);
@@ -63,7 +63,7 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
           })
           .select()
           .single();
-        
+
         if (lesson) setCurrentLessonId(lesson.id);
         if (error) console.error("Error creating lesson:", error);
       }
@@ -80,16 +80,16 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
     setFeedback({ showed: true, data: currentSentence });
 
     if (user && currentLessonId) {
-       await supabase.from('lesson_attempts').insert({
-          lesson_id: currentLessonId,
-          user_id: user.id,
-          sentence_index: currentIndex,
-          vietnamese_sentence: currentSentence.vi,
-          correct_answer: currentSentence.en_best,
-          user_answer: userTranslation,
-          is_correct: false, // In a real app we might use AI to fuzzy match correctness
-          attempts: 1
-       });
+      await supabase.from('lesson_attempts').insert({
+        lesson_id: currentLessonId,
+        user_id: user.id,
+        sentence_index: currentIndex,
+        vietnamese_sentence: currentSentence.vi,
+        correct_answer: currentSentence.en_best,
+        user_answer: userTranslation,
+        is_correct: false, // In a real app we might use AI to fuzzy match correctness
+        attempts: 1
+      });
     }
   };
 
@@ -139,18 +139,19 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-5 max-w-6xl mx-auto">
-      {/* Left Column: Input & Story */}
-      <div className="bg-bgPanel rounded-xl border border-borderColor shadow-lg p-6 flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-           <h2 className="text-xl font-semibold text-textPrimary flex items-center gap-2">
-             <i className="fas fa-edit text-textHighlight"></i> Practice Area
-           </h2>
-           {!pasteMode && (
-             <button onClick={handleNew} className="btn-primary text-sm px-4 py-2 rounded-lg flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
-               <i className="fas fa-plus"></i> New
-             </button>
-           )}
+    <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
+      {/* Input & Story Card */}
+      <div className="bg-bgPanel rounded-3xl border-2 border-bgSecondary shadow-card p-6 flex flex-col">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold font-display text-textPrimary flex items-center gap-2">
+            <span className="bg-brandHighlight/20 text-brandHighlight p-2 rounded-xl"><i className="fas fa-edit"></i></span>
+            Practice
+          </h2>
+          {!pasteMode && (
+            <button onClick={handleNew} className="text-sm px-4 py-2 rounded-xl bg-bgSecondary text-textPrimary font-bold hover:bg-opacity-80 transition-all border-b-4 border-bgBody active:border-b-0 active:translate-y-1">
+              <i className="fas fa-plus mr-1"></i> New
+            </button>
+          )}
         </div>
 
         {pasteMode ? (
@@ -158,98 +159,97 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
             <textarea
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
-              className="w-full h-40 bg-bgSecondary border border-borderColor rounded-xl p-4 text-textPrimary focus:outline-none focus:border-textHighlight focus:ring-1 focus:ring-textHighlight/30 transition-all mb-4"
-              placeholder="📝 Paste Vietnamese text here to start learning..."
+              className="w-full h-48 bg-bgBody border-2 border-bgSecondary rounded-2xl p-4 text-textPrimary focus:outline-none focus:border-brandHighlight transition-all mb-6 placeholder-textSecondary/50 text-lg resize-none"
+              placeholder="Paste Vietnamese text here..."
             ></textarea>
-            <button 
-              onClick={handleGenerate} 
+            <button
+              onClick={handleGenerate}
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold rounded-xl shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all flex justify-center items-center gap-2"
+              className="w-full py-4 bg-brandPrimary text-white font-extrabold text-lg rounded-2xl shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-2 uppercase tracking-wide"
             >
-              {loading ? <i className="fas fa-spinner fa-spin"></i> : <><i className="fas fa-magic"></i> Generate Lesson</>}
+              {loading ? <i className="fas fa-spinner fa-spin"></i> : "Start Lesson"}
             </button>
           </div>
         ) : (
           <div className="flex flex-col h-full animate-fade-in-up">
             {/* Story Display */}
-            <div className="bg-bgSecondary rounded-xl p-5 mb-5 text-lg leading-relaxed min-h-[120px] shadow-inner border border-borderColor/50">
+            <div className="bg-bgBody rounded-2xl p-6 mb-6 text-lg leading-relaxed min-h-[120px] border-2 border-bgSecondary">
               {storyData.length === 0 ? (
-                 <div className="text-center text-textSecondary py-8">
-                   <i className="fas fa-spinner fa-spin text-3xl mb-3"></i>
-                   <p>Generating...</p>
-                 </div>
+                <div className="text-center text-textSecondary py-8">
+                  <i className="fas fa-spinner fa-spin text-3xl mb-3"></i>
+                  <p>Generating...</p>
+                </div>
               ) : (
                 storyData.map((sentence, idx) => {
-                  let className = "transition-all duration-300 rounded px-1 ";
+                  let className = "transition-all duration-300 rounded px-1 inline-block mx-0.5 ";
                   let content = sentence.vi;
 
                   if (idx < currentIndex) {
-                    className += "text-textSecondary font-normal";
-                    content = sentence.en_best;
+                    className += "text-textSecondary font-normal line-through opacity-50";
+                    content = sentence.vi; // Keep Vietnamese but strikethrough
                   } else if (idx === currentIndex) {
-                    className += "text-[#ff6b9d] font-bold bg-pink-500/10";
+                    className += "text-brandPrimary font-bold bg-brandPrimary/10 border-b-2 border-brandPrimary/30";
                     content = sentence.vi;
                   } else {
                     className += "text-textSecondary opacity-50";
                     content = sentence.vi;
                   }
-                  
+
                   return <span key={idx} className={className}>{content} </span>
                 })
               )}
             </div>
 
             {/* Input Area */}
-            <textarea
-              ref={inputRef}
-              value={userTranslation}
-              onChange={(e) => setUserTranslation(e.target.value)}
-              disabled={feedback.showed}
-              className={`w-full h-32 bg-bgSecondary border-2 ${feedback.showed ? 'border-borderColor opacity-80' : 'border-accentYellow shadow-[0_0_0_2px_rgba(245,158,11,0.1)]'} rounded-xl p-4 text-textPrimary focus:outline-none transition-all mb-4 text-base`}
-              placeholder={feedback.showed ? "" : "Enter your English translation here..."}
-            ></textarea>
+            <div className="relative mb-6">
+              <textarea
+                ref={inputRef}
+                value={userTranslation}
+                onChange={(e) => setUserTranslation(e.target.value)}
+                disabled={feedback.showed}
+                className={`w-full h-32 bg-bgBody border-2 ${feedback.showed ? 'border-bgSecondary text-textSecondary' : 'border-bgSecondary focus:border-brandSecondary'} rounded-2xl p-4 text-textPrimary focus:outline-none transition-all text-lg resize-none`}
+                placeholder={feedback.showed ? "" : "Type translation..."}
+              ></textarea>
 
-            {/* Controls */}
-            <div className="flex gap-3 mt-auto flex-wrap">
-               {!feedback.showed ? (
-                 <>
-                   <button 
-                      onClick={() => currentIndex > 0 && setCurrentIndex(curr => curr - 1)}
-                      disabled={currentIndex === 0}
-                      className={`flex-1 py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${currentIndex === 0 ? 'opacity-0 pointer-events-none' : 'bg-bgSecondary text-textPrimary hover:bg-bgHover border border-borderColor'}`}
-                   >
-                     <i className="fas fa-arrow-left"></i> Prev
-                   </button>
-                   <button 
-                      onClick={checkAnswer}
-                      className="flex-[2] py-2.5 rounded-xl bg-gradient-to-r from-gray-700 to-gray-800 text-gray-200 hover:text-white hover:-translate-y-0.5 shadow-lg border border-gray-600 font-semibold flex items-center justify-center gap-2"
-                   >
-                     <i className="fas fa-check-circle text-accentGreen"></i> Check Answer
-                   </button>
-                 </>
-               ) : (
-                 <>
-                   <button onClick={handleRetry} className="flex-1 py-2.5 rounded-xl bg-bgSecondary text-textPrimary hover:bg-bgHover border border-borderColor font-semibold flex items-center justify-center gap-2">
-                     <i className="fas fa-redo"></i> Retry
-                   </button>
-                   <button 
-                     onClick={handleNext} 
-                     className="flex-[2] py-2.5 rounded-xl bg-gradient-to-r from-gray-600 to-gray-700 text-white hover:shadow-lg hover:-translate-y-0.5 border border-gray-500 font-semibold flex items-center justify-center gap-2"
-                   >
-                     <i className="fas fa-arrow-right"></i> Continue
-                   </button>
-                 </>
-               )}
+              {feedback.showed && feedback.data && (
+                <div className="absolute inset-0 bg-bgPanel/95 backdrop-blur-sm rounded-2xl p-4 flex flex-col justify-center animate-fade-in border-2 border-brandHighlight/20">
+                  <div className="text-sm text-textSecondary uppercase font-bold mb-1">Correct Answer:</div>
+                  <div className="text-lg font-bold text-brandHighlight mb-2">{feedback.data.en_best}</div>
+                  <button onClick={() => speakPhrase(feedback.data!.en_best)} className="self-start text-textPrimary bg-bgSecondary px-3 py-1 rounded-full text-xs font-bold hover:bg-opacity-80">
+                    <i className="fas fa-volume-up mr-1"></i> Listen
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Progress */}
-            <div className="mt-6 pt-5 border-t border-borderColor">
-              <div className="flex justify-between text-sm text-textSecondary mb-2 font-mono">
-                <span>Step <span className="text-textPrimary font-bold">{currentIndex + 1}</span> of {storyData.length}</span>
+            {/* Controls */}
+            <div className="flex gap-3 mt-auto">
+              {!feedback.showed ? (
+                <button
+                  onClick={checkAnswer}
+                  className="flex-1 py-4 rounded-2xl bg-brandSecondary text-white font-extrabold shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all uppercase tracking-wide"
+                >
+                  Check
+                </button>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  className="flex-1 py-4 rounded-2xl bg-brandPrimary text-white font-extrabold shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all uppercase tracking-wide"
+                >
+                  Continue
+                </button>
+              )}
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mt-8">
+              <div className="flex justify-between text-xs text-textSecondary uppercase font-bold mb-2">
+                <span>Progress</span>
+                <span>{currentIndex} / {storyData.length}</span>
               </div>
-              <div className="h-3 bg-bgPanel border border-borderColor rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500 ease-out rounded-full"
+              <div className="h-4 bg-bgBody border-2 border-bgSecondary rounded-full overflow-hidden p-0.5">
+                <div
+                  className="h-full bg-brandHighlight rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${((currentIndex) / storyData.length) * 100}%` }}
                 ></div>
               </div>
@@ -258,53 +258,22 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
         )}
       </div>
 
-      {/* Right Column: Feedback */}
-      <div className="bg-bgPanel rounded-xl border border-borderColor shadow-lg p-6 h-fit">
-        <h2 className="text-xl font-semibold text-textPrimary flex items-center gap-2 mb-4">
-           <i className="fas fa-comments text-accentBlue"></i> Feedback
-        </h2>
-
-        {!feedback.showed || !feedback.data ? (
-          <div className="text-center py-10 text-textSecondary bg-bgSecondary/50 rounded-xl border border-borderColor border-dashed">
-             <i className="fas fa-lightbulb text-4xl mb-3 opacity-30 block"></i>
-             <h3 className="text-lg font-medium text-textPrimary mb-1">Check your answer</h3>
-             <p className="text-sm">Submit your translation to see feedback</p>
+      {/* Vocabulary Card */}
+      {feedback.showed && feedback.data && feedback.data.phrase_breakdown && (
+        <div className="bg-bgPanel rounded-3xl border-2 border-bgSecondary shadow-card p-6 animate-slide-in-up">
+          <h3 className="text-lg font-bold font-display text-textPrimary mb-4 flex items-center gap-2">
+            <i className="fas fa-book-open text-accentYellow"></i> Vocabulary From This Sentence
+          </h3>
+          <div className="grid gap-2">
+            {feedback.data.phrase_breakdown.map((item, i) => (
+              <div key={i} className="bg-bgBody p-3 rounded-xl border border-bgSecondary flex justify-between items-center group hover:border-brandSecondary/50 transition-colors cursor-pointer" onClick={() => speakPhrase(item.phrase)}>
+                <span className="font-bold text-brandSecondary group-hover:underline">{item.phrase}</span>
+                <span className="text-textSecondary text-sm">{item.meaning}</span>
+              </div>
+            ))}
           </div>
-        ) : (
-          <div className="animate-slide-in">
-             <div className="mb-4">
-                <div className="text-textHighlight font-bold mb-2 flex items-center gap-2">
-                  <i className="fas fa-check-circle"></i> Best Answer:
-                </div>
-                <div className="bg-bgSecondary p-4 rounded-xl border-l-4 border-accentGreen shadow-sm">
-                   <div className="text-accentGreen text-lg font-semibold flex justify-between items-start gap-2">
-                     <span>{feedback.data.en_best}</span>
-                     <button onClick={() => speakPhrase(feedback.data!.en_best)} className="text-textSecondary hover:text-textPrimary text-sm mt-1">
-                       <i className="fas fa-volume-up"></i>
-                     </button>
-                   </div>
-                </div>
-             </div>
-
-             <div>
-                <div className="text-textHighlight font-bold mb-2 flex items-center gap-2">
-                   <i className="fas fa-book"></i> Vocabulary:
-                </div>
-                <div className="bg-bgSecondary rounded-xl overflow-hidden shadow-sm">
-                   {feedback.data.phrase_breakdown?.map((item, i) => (
-                     <div key={i} className="p-3 border-b border-borderColor last:border-0 flex flex-col sm:flex-row sm:items-center justify-between gap-1 hover:bg-bgHover/50 transition-colors">
-                        <div className="font-medium">
-                          <span className="text-accentGreen font-semibold mr-1 cursor-pointer hover:underline" onClick={() => speakPhrase(item.phrase)}>{item.phrase}</span>
-                          <span className="text-textSecondary text-sm hidden sm:inline">:</span>
-                        </div>
-                        <span className="text-[#c4b5fd] text-sm sm:text-right">{item.meaning}</span>
-                     </div>
-                   ))}
-                </div>
-             </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

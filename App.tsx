@@ -30,7 +30,7 @@ const App: React.FC = () => {
         setUser(null);
       }
     };
-    
+
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -54,20 +54,20 @@ const App: React.FC = () => {
 
     // If no profile, insert one (handled mostly by DB triggers usually, but here manually just in case)
     if (!profile) {
-       const newProfile = {
-         id: uid,
-         email: email,
-         full_name: email.split('@')[0],
-         avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}`,
-         total_score: 0,
-         total_lessons: 0
-       };
-       // Attempt insert if policy allows, otherwise it relies on supabase triggers
-       // For this demo, we assume the table exists as per provided code
-       const { error } = await supabase.from('profiles').insert(newProfile);
-       if (!error) profile = newProfile;
+      const newProfile = {
+        id: uid,
+        email: email,
+        full_name: email.split('@')[0],
+        avatar_url: `https://ui-avatars.com/api/?name=${encodeURIComponent(email)}`,
+        total_score: 0,
+        total_lessons: 0
+      };
+      // Attempt insert if policy allows, otherwise it relies on supabase triggers
+      // For this demo, we assume the table exists as per provided code
+      const { error } = await supabase.from('profiles').insert(newProfile);
+      if (!error) profile = newProfile;
     }
-    
+
     if (profile) {
       setUser(profile as UserProfile);
     }
@@ -88,91 +88,105 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen text-textPrimary font-sans pb-10">
-      {/* Top Navigation */}
-      <div className="container mx-auto px-4 pt-6 mb-8">
-        <div className="bg-bgPanel rounded-2xl p-4 border border-borderColor shadow-lg flex justify-between items-center relative z-20">
-          <div className="hidden md:flex items-center gap-3 text-xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-500 text-transparent bg-clip-text">
-             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-2 rounded-xl shadow-lg shadow-indigo-500/20">
-               <i className="fas fa-language"></i>
-             </div>
-             Loen
-          </div>
-
-          <div className="flex gap-4 items-center w-full md:w-auto justify-end">
-             {user ? (
-               <>
-                 <div className="flex items-center gap-3 mr-2 bg-bgSecondary py-1.5 px-3 rounded-full border border-borderColor">
-                    <img src={user.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`} alt="Avatar" className="w-8 h-8 rounded-full border border-textHighlight" />
-                    <div className="hidden sm:block">
-                       <div className="text-sm font-bold leading-none">{user.full_name}</div>
-                       <div className="text-xs text-textSecondary font-mono">{user.total_score} pts</div>
-                    </div>
-                 </div>
-                 <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-xl bg-bgSecondary border border-borderColor text-textSecondary hover:text-textPrimary hover:bg-bgHover transition-all flex items-center justify-center">
-                    <i className="fas fa-cog"></i>
-                 </button>
-                 <button onClick={handleLogout} className="w-10 h-10 rounded-xl bg-red-500/10 border border-transparent text-errorColor hover:bg-red-500 hover:text-white transition-all flex items-center justify-center">
-                    <i className="fas fa-sign-out-alt"></i>
-                 </button>
-               </>
-             ) : (
-               <>
-                 <button onClick={() => setShowSettings(true)} className="px-4 py-2 rounded-xl bg-bgSecondary border border-borderColor text-textSecondary hover:text-textPrimary hover:bg-bgHover transition-all flex items-center gap-2 text-sm font-semibold">
-                    <i className="fas fa-cog"></i> <span className="hidden sm:inline">API Key</span>
-                 </button>
-                 <button onClick={() => setShowLogin(true)} className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all flex items-center gap-2 text-sm font-semibold">
-                    <i className="fas fa-sign-in-alt"></i> Login
-                 </button>
-               </>
-             )}
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="mt-6 flex justify-center w-full max-w-lg mx-auto bg-bgPanel p-1.5 rounded-2xl border border-borderColor shadow-md relative z-20">
-          {[
-            { id: 'practice', icon: 'fa-book-open', label: 'Practice' },
-            { id: 'leaderboard', icon: 'fa-trophy', label: 'Ranking' },
-            { id: 'notes', icon: 'fa-sticky-note', label: 'Notes' }
-          ].map((item) => (
-             <button
-               key={item.id}
-               onClick={() => {
-                 if ((item.id === 'leaderboard' || item.id === 'notes') && !user) {
-                   setShowLogin(true);
-                   return;
-                 }
-                 setTab(item.id as any);
-               }}
-               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${tab === item.id ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-md' : 'text-textSecondary hover:text-textPrimary hover:bg-bgHover'}`}
-             >
-               <i className={`fas ${item.icon}`}></i> <span className="hidden sm:inline">{item.label}</span>
-             </button>
-          ))}
-        </div>
+    <div className="min-h-screen mobile-pb">
+      {/* Top Controls Area */}
+      <div className="container mx-auto px-4 py-4 flex justify-end items-center gap-3">
+        {user ? (
+          <>
+            <div className="flex items-center gap-2 bg-bgPanel py-1.5 px-3 rounded-full shadow-sm border border-bgSecondary">
+              <img src={user.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`} alt="Avatar" className="w-8 h-8 rounded-full border border-brandHighlight" />
+              <div className="hidden sm:block text-right">
+                <div className="text-sm font-bold leading-none">{user.full_name}</div>
+                <div className="text-xs text-brandHighlight font-mono">{user.total_score} pts</div>
+              </div>
+            </div>
+            <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-xl bg-bgPanel text-textSecondary hover:text-textPrimary hover:shadow-lg transition-all flex items-center justify-center">
+              <i className="fas fa-cog"></i>
+            </button>
+            <button onClick={handleLogout} className="w-10 h-10 rounded-xl bg-red-500/10 text-accentRed hover:bg-accentRed hover:text-white hover:shadow-lg transition-all flex items-center justify-center">
+              <i className="fas fa-sign-out-alt"></i>
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => setShowSettings(true)} className="w-10 h-10 rounded-xl bg-bgPanel text-textSecondary hover:text-textPrimary hover:shadow-lg transition-all flex items-center justify-center">
+              <i className="fas fa-cog"></i>
+            </button>
+            <button onClick={() => setShowLogin(true)} className="px-4 py-2 rounded-xl bg-brandPrimary text-white shadow-button hover:shadow-button-hover active:shadow-none active:translate-y-1 transition-all flex items-center gap-2 text-sm font-bold uppercase tracking-wide">
+              Login
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 relative z-10">
-         {tab === 'practice' && (
-           <PracticeTab 
-             apiKeys={apiKeys} 
-             user={user} 
-             onOpenSettings={() => setShowSettings(true)}
-             onUpdateUserStats={updateStats}
-           />
-         )}
-         {tab === 'leaderboard' && <LeaderboardTab user={user} />}
-         {tab === 'notes' && <NotesTab user={user} onOpenLogin={() => setShowLogin(true)} />}
+      {/* Main Content Area */}
+      <div className="container mx-auto px-4 pb-24 md:pb-8 max-w-4xl">
+        {tab === 'practice' && (
+          <PracticeTab
+            apiKeys={apiKeys}
+            user={user}
+            onOpenSettings={() => setShowSettings(true)}
+            onUpdateUserStats={updateStats}
+          />
+        )}
+        {tab === 'leaderboard' && <LeaderboardTab user={user} />}
+        {tab === 'notes' && <NotesTab user={user} onOpenLogin={() => setShowLogin(true)} />}
+      </div>
+
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-bgPanel border-t border-bgSecondary px-6 py-3 flex justify-around items-center z-50 md:hidden pb-safe">
+        {[
+          { id: 'practice', icon: 'fa-book-open', label: 'Practice' },
+          { id: 'leaderboard', icon: 'fa-trophy', label: 'Rank' },
+          { id: 'notes', icon: 'fa-sticky-note', label: 'Notes' }
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              if ((item.id === 'leaderboard' || item.id === 'notes') && !user) {
+                setShowLogin(true);
+                return;
+              }
+              setTab(item.id as any);
+            }}
+            className={`flex flex-col items-center gap-1 transition-all ${tab === item.id ? 'text-brandHighlight transform scale-110' : 'text-textSecondary hover:text-textPrimary'}`}
+          >
+            <i className={`fas ${item.icon} text-xl`}></i>
+            <span className="text-[10px] font-bold uppercase tracking-wider">{item.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop Side Navigation (Hidden on Mobile) */}
+      <div className="hidden md:flex fixed left-8 top-1/2 -translate-y-1/2 bg-bgPanel p-2 rounded-2xl flex-col gap-2 border border-bgSecondary shadow-xl z-40">
+        {[
+          { id: 'practice', icon: 'fa-book-open', label: 'Practice' },
+          { id: 'leaderboard', icon: 'fa-trophy', label: 'Leaderboard' },
+          { id: 'notes', icon: 'fa-sticky-note', label: 'My Notes' }
+        ].map((item) => (
+          <button
+            key={item.id}
+            onClick={() => {
+              if ((item.id === 'leaderboard' || item.id === 'notes') && !user) {
+                setShowLogin(true);
+                return;
+              }
+              setTab(item.id as any);
+            }}
+            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all ${tab === item.id ? 'bg-brandHighlight text-white shadow-lg' : 'text-textSecondary hover:bg-bgSecondary hover:text-textPrimary'}`}
+            title={item.label}
+          >
+            <i className={`fas ${item.icon} text-lg`}></i>
+          </button>
+        ))}
       </div>
 
       {/* Modals */}
-      <SettingsModal 
-        isOpen={showSettings} 
-        onClose={() => setShowSettings(false)} 
-        onSave={handleSaveKeys} 
-        initialKeys={apiKeys} 
+      <SettingsModal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        onSave={handleSaveKeys}
+        initialKeys={apiKeys}
       />
       <LoginModal isOpen={showLogin} onClose={() => setShowLogin(false)} />
     </div>
