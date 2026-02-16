@@ -129,8 +129,6 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
       } else {
         setTimeout(() => alert("🎉 CONGRATULATIONS! Sign in to save your progress!"), 500);
       }
-      // Reset or stay? Let's stay but maybe show full completion state
-      // For now, just clear feedback to look like "done"
     }
   };
 
@@ -148,9 +146,12 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
   };
 
   const speakPhrase = (text: string) => {
+    // Google Translate TTS URL (English)
+    // client=tw-ob is commonly used for unofficial access, but strict usage policies apply.
+    // For a demo/personal project, this usually works.
     const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
     const audio = new Audio(url);
-    audio.play().catch(e => console.error(e));
+    audio.play().catch(e => console.error("Audio playback failed:", e));
   };
 
   return (
@@ -230,8 +231,8 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
                 <div className="absolute inset-0 bg-bgPanel/95 backdrop-blur-sm rounded-2xl p-4 flex flex-col justify-center animate-fade-in border-2 border-brandHighlight/20">
                   <div className="text-sm text-textSecondary uppercase font-bold mb-1">Correct Answer:</div>
                   <div className="text-lg font-bold text-brandHighlight mb-2">{feedback.data.en_best}</div>
-                  <button onClick={() => speakPhrase(feedback.data!.en_best)} className="self-start text-textPrimary bg-bgSecondary px-3 py-1 rounded-full text-xs font-bold hover:bg-opacity-80">
-                    <i className="fas fa-volume-up mr-1"></i> Listen
+                  <button onClick={() => speakPhrase(feedback.data!.en_best)} className="self-start text-textPrimary bg-bgSecondary px-3 py-1 rounded-full text-xs font-bold hover:bg-opacity-80 flex items-center gap-1">
+                    <i className="fas fa-volume-up"></i> Listen (Google)
                   </button>
                 </div>
               )}
@@ -284,6 +285,7 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
               <div key={i} className="bg-bgBody p-3 rounded-xl border border-bgSecondary flex justify-between items-center group hover:border-brandSecondary/50 transition-colors cursor-pointer" onClick={() => speakPhrase(item.phrase)}>
                 <span className="font-bold text-brandSecondary group-hover:underline">{item.phrase}</span>
                 <span className="text-textSecondary text-sm">{item.meaning}</span>
+                <i className="fas fa-volume-up text-textSecondary group-hover:text-textPrimary ml-2 text-xs opacity-50"></i>
               </div>
             ))}
           </div>
