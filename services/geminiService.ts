@@ -21,13 +21,13 @@ export const callAIWithRotation = async (prompt: string, apiKeys: string[]): Pro
         model: MODEL_NAME,
         contents: prompt,
         config: {
-            responseMimeType: "application/json"
+          responseMimeType: "application/json"
         }
       });
-      
+
       const text = response.text;
       if (!text) throw new Error("Empty response from AI");
-      
+
       // Clean up markdown code blocks if present (though responseMimeType should handle it)
       const cleanText = text.replace(/```json|```/g, '').trim();
       return JSON.parse(cleanText) as StoryResponse;
@@ -48,26 +48,19 @@ export const callAIWithRotation = async (prompt: string, apiKeys: string[]): Pro
 };
 
 export const generateLessonPrompt = (text: string) => `
-Translate Vietnamese to English. You are a native English speaker with perfect grammar.
+Translate Vietnamese to English.
+Role: Native English speaker, perfect grammar.
 
-CRITICAL GRAMMAR RULES - NO EXCEPTIONS:
-- Use correct verb tenses (past/present/future)
-- Subject-verb agreement (he/she/it + verb+s)
-- Correct articles: a/an (indefinite), the (definite)
-- Proper prepositions (on/in/at/to/for)
-- Natural word order
-- Check EVERY sentence for grammar errors before output
+RULES:
+- Correct tenses, subject-verb agreement, articles, prepositions, natural word order.
+- NO grammar errors.
 
-Output JSON: {"sentences": [{"vi": "text,", "en_best": "translation", "phrase_breakdown": [{"phrase": "phrase", "meaning": "nghĩa"}]}]}
+Output JSON: {"sentences": [{"vi": "text", "en_best": "translation", "phrase_breakdown": [{"phrase": "phrase", "meaning": "meaning"}]}]}
 
 Requirements:
-1. Keep Vietnamese text with punctuation
-2. English must be: GRAMMATICALLY PERFECT + sound natural
-3. Break into 3-5 phrases with meanings
-
-Example:
-Input: "Mặt trời mọc lên từ từ trên ngôi làng yên tĩnh."
-Output: {"sentences": [{"vi": "Mặt trời mọc lên từ từ trên ngôi làng yên tĩnh.", "en_best": "The sun rose slowly over the quiet village.", "phrase_breakdown": [{"phrase": "The sun", "meaning": "mặt trời"}, {"phrase": "rose slowly", "meaning": "mọc lên từ từ"}, {"phrase": "over the quiet village", "meaning": "trên ngôi làng yên tĩnh"}]}]}
+1. Keep VI punctuation.
+2. EN: Natural & Grammatically Perfect.
+3. 3-5 phrase breakdowns/sentence.
 
 Input: "${text}"
 `;

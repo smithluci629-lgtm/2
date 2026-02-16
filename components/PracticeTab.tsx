@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../services/supabase';
 import { callAIWithRotation, generateLessonPrompt } from '../services/geminiService';
+import { getCachedLesson, cacheLesson } from '../services/cacheService';
 import { StoryResponse, SentenceData, Lesson, UserProfile } from '../types';
 
 declare global {
@@ -25,6 +26,7 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
   const [currentLessonId, setCurrentLessonId] = useState<string | null>(null);
   const [userTranslation, setUserTranslation] = useState('');
   const [feedback, setFeedback] = useState<{ showed: boolean; data: SentenceData | null }>({ showed: false, data: null });
+  const [fromCache, setFromCache] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-focus input when moving to next sentence or starting
@@ -39,15 +41,32 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
       alert("Please paste some Vietnamese text first!");
       return;
     }
+
+    // Check cache first
+    const cached = getCachedLesson(textInput);
+    if (cached) {
+      setStoryData(cached.sentences);
+      setCurrentIndex(0);
+      setPasteMode(false);
+      setFeedback({ showed: false, data: null });
+      setUserTranslation('');
+      setFromCache(true);
+      return;
+    }
+
     if (apiKeys.length === 0) {
       onOpenSettings();
       return;
     }
 
     setLoading(true);
+    setFromCache(false);
     try {
       const prompt = generateLessonPrompt(textInput);
       const data = await callAIWithRotation(prompt, apiKeys);
+
+      // Save to cache
+      cacheLesson(textInput, data);
 
       setStoryData(data.sentences);
       setCurrentIndex(0);
@@ -143,12 +162,11 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
     setStoryData([]);
     setCurrentIndex(0);
     setTextInput('');
+    setFromCache(false);
   };
 
   const speakPhrase = (text: string) => {
     // Google Translate TTS URL (English)
-    // client=tw-ob is commonly used for unofficial access, but strict usage policies apply.
-    // For a demo/personal project, this usually works.
     const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
     const audio = new Audio(url);
     audio.play().catch(e => console.error("Audio playback failed:", e));
@@ -162,6 +180,7 @@ const PracticeTab: React.FC<PracticeTabProps> = ({ apiKeys, user, onOpenSettings
           <h2 className="text-xl font-bold font-display text-textPrimary flex items-center gap-2">
             <span className="bg-brandHighlight/20 text-brandHighlight p-2 rounded-xl"><i className="fas fa-edit"></i></span>
             Practice
+            {fromCache && <span className="text-xs bg-accentGreen/10 text-accentGreen px-2 py-1 rounded-full border border-accentGreen/20 ml-2 animate-pulse"><i className="fas fa-bolt"></i> Cached</span>}
           </h2>
           {!pasteMode && (
             <button onClick={handleNew} className="text-sm px-4 py-2 rounded-xl bg-bgSecondary text-textPrimary font-bold hover:bg-opacity-80 transition-all border-b-4 border-bgBody active:border-b-0 active:translate-y-1">
